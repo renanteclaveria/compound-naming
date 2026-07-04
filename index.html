@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Compound Naming Lab - Foundations</title>
+<style>
+  @font-face {
+    font-family: 'system-display';
+    src: local('Arial');
+  }
+
+  :root{
+    --navy: #0F1B2D;
+    --navy-2: #16263D;
+    --navy-3: #1E3450;
+    --amber: #FFA94D;
+    --amber-dim: #C97D34;
+    --green: #5FD068;
+    --red: #E5484D;
+    --cream: #F2EDE4;
+    --cream-dim: #B9C2CC;
+    --tile-locked: #233246;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: var(--navy);
+    color: var(--cream);
+    font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .display{
+    font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  #app{
+    min-height: 100vh;
+    display:flex;
+    flex-direction: column;
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ===== TOP BAR / PROGRESS TILES ===== */
+  .topbar{
+    padding: 14px 16px 10px;
+    background: linear-gradient(180deg, var(--navy-2), var(--navy));
+    border-bottom: 1px solid #25395740;
+    position: sticky;
+    top:0;
+    z-index: 20;
+  }
+  .topbar-row{
+    display:flex; align-items:center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .lab-title{
+    font-size: 15px;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .stat-pill{
+    background: var(--navy-3);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    display:flex;
+    gap:6px;
+    align-items:center;
+  }
+  .stat-row{ display:flex; gap:8px; }
+  .streak-flame{ color: var(--amber); }
+
+  .tile-strip{
+    display:flex; gap:4px; overflow-x:auto; padding-bottom:2px;
+  }
+  .tile-strip::-webkit-scrollbar{ display:none; }
+  .ptile{
+    flex: 0 0 auto;
+    width: 30px; height: 34px;
+    border-radius: 5px;
+    background: var(--tile-locked);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 11px; font-weight: 800;
+    color: #4A5C75;
+    transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+    border: 1px solid #2A3D58;
+  }
+  .ptile.filled{
+    background: linear-gradient(145deg, var(--amber), var(--amber-dim));
+    color: var(--navy);
+    border-color: var(--amber);
+    transform: scale(1.04);
+  }
+  .ptile.r2{ background: linear-gradient(145deg, #7FD8E8, #4FAEC2); border-color:#7FD8E8; color:var(--navy); }
+  .ptile.r3{ background: linear-gradient(145deg, #C792EA, #9B5FC0); border-color:#C792EA; color:var(--navy); }
+
+  /* ===== MAIN STAGE ===== */
+  .stage{
+    flex:1;
+    padding: 18px 16px 100px;
+    display:flex;
+    flex-direction: column;
+  }
+
+  .round-banner{
+    text-align:center;
+    margin: 6px 0 18px;
+  }
+  .round-eyebrow{
+    font-size: 12px;
+    color: var(--cream-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .round-name{
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cream);
+    margin-top: 2px;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen{ display:none; flex:1; flex-direction:column; }
+  .screen.active{ display:flex; }
+
+  /* INTRO SCREEN */
+  #screen-intro{ justify-content:center; align-items:center; text-align:center; padding: 0 8px; }
+  .beaker-emoji{ font-size: 64px; margin-bottom: 6px; filter: drop-shadow(0 0 18px #FFA94D55); }
+  .intro-h1{ font-size: 30px; line-height:1.15; margin: 6px 0 8px; }
+  .intro-h1 span{ color: var(--amber); }
+  .intro-sub{ color: var(--cream-dim); font-size: 15px; max-width: 360px; margin-bottom: 26px; }
+  .name-input-wrap{ width:100%; max-width: 320px; margin-bottom: 18px; }
+  .name-input-wrap input{
+    width:100%; padding: 13px 16px; border-radius: 12px;
+    border: 2px solid var(--navy-3); background: var(--navy-2);
+    color: var(--cream); font-size: 16px; text-align:center;
+    outline:none;
+  }
+  .name-input-wrap input:focus{ border-color: var(--amber); }
+  .name-input-wrap select{
+    width:100%; padding: 13px 16px; border-radius: 12px;
+    border: 2px solid var(--navy-3); background: var(--navy-2);
+    color: var(--cream); font-size: 15px; text-align:center;
+    outline:none; -webkit-appearance:none; appearance:none;
+  }
+  .name-input-wrap select:invalid{ color: var(--cream-dim); }
+  .name-input-wrap select:focus{ border-color: var(--amber); }
+
+  /* ROUND INTRO MICRO-SCREEN */
+  .round-intro-card{
+    flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  }
+  .round-intro-icon{ font-size: 56px; margin-bottom: 12px; }
+  .round-intro-card h2{ font-size: 26px; margin: 0 0 10px; }
+  .round-intro-card p{ color: var(--cream-dim); font-size: 15px; max-width: 380px; line-height:1.5; margin-bottom: 28px; }
+
+  /* QUESTION CARD */
+  .qcard{
+    background: var(--navy-2);
+    border-radius: 20px;
+    border: 1px solid #25395780;
+    padding: 30px 22px;
+    text-align:center;
+    margin-bottom: 22px;
+    position: relative;
+    box-shadow: 0 8px 24px -8px #00000060;
+  }
+  .qcard .item-num{
+    position:absolute; top:14px; left:18px;
+    font-size: 12px; color: var(--cream-dim); font-weight:700;
+  }
+  .symbol-big{
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--amber);
+    margin: 6px 0 4px;
+    line-height:1;
+  }
+  .symbol-sub{
+    font-size: 13px; color: var(--cream-dim);
+  }
+  .formula-big{
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--cream);
+    margin: 10px 0 6px;
+    letter-spacing: 0.02em;
+  }
+  .formula-hint{
+    font-size: 13px; color: var(--cream-dim); margin-top: 4px;
+  }
+
+  /* INPUT AREA */
+  .answer-area{ display:flex; flex-direction:column; gap:12px; }
+  .text-answer{
+    display:flex; gap:10px;
+  }
+  .text-answer input{
+    flex:1; padding: 14px 16px; border-radius: 12px;
+    border: 2px solid var(--navy-3); background: var(--navy-2);
+    color: var(--cream); font-size: 17px; outline:none;
+  }
+  .text-answer input:focus{ border-color: var(--amber); }
+  .submit-btn{
+    background: var(--amber); color: var(--navy);
+    border:none; border-radius: 12px; padding: 0 22px;
+    font-weight: 800; font-size: 15px; cursor:pointer;
+  }
+  .submit-btn:active{ transform: scale(0.96); }
+
+  .mc-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .mc-btn{
+    background: var(--navy-2); border: 2px solid var(--navy-3);
+    color: var(--cream); border-radius: 14px;
+    padding: 14px 10px; font-size: 14.5px; font-weight: 600;
+    cursor:pointer; text-align:center; line-height:1.3;
+    transition: all 0.15s;
+  }
+  .mc-btn:active{ transform: scale(0.97); }
+  .mc-btn.correct-flash{ background: var(--green); border-color: var(--green); color: var(--navy); }
+  .mc-btn.wrong-flash{ background: var(--red); border-color: var(--red); color: white; }
+  .mc-btn.disabled-flash{ opacity: 0.35; }
+
+  /* FEEDBACK BANNER */
+  .feedback{
+    margin-top: 14px;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+    display:none;
+    animation: slideUp 0.25s ease-out;
+  }
+  .feedback.show{ display:block; }
+  .feedback.correct{ background: #5FD06822; border: 1px solid var(--green); color: var(--green); }
+  .feedback.wrong{ background: #E5484D22; border: 1px solid var(--red); color: var(--red); }
+  .feedback .fb-answer{ color: var(--cream); font-weight: 800; }
+  @keyframes slideUp{ from{ opacity:0; transform: translateY(8px);} to{ opacity:1; transform: translateY(0);} }
+
+  /* CONTINUE BUTTON */
+  .continue-btn{
+    margin-top: 16px;
+    width:100%;
+    background: var(--cream); color: var(--navy);
+    border:none; border-radius: 14px; padding: 15px;
+    font-weight: 800; font-size: 15px; cursor:pointer;
+    display:none;
+  }
+  .continue-btn.show{ display:block; animation: slideUp 0.25s ease-out; }
+  .continue-btn:active{ transform: scale(0.97); }
+
+  /* STREAK POPUP */
+  .streak-pop{
+    position: fixed;
+    top: 90px; left:50%;
+    transform: translateX(-50%) scale(0.7);
+    background: var(--amber); color: var(--navy);
+    font-weight: 900; font-size: 14px;
+    padding: 8px 18px; border-radius: 30px;
+    opacity:0; z-index: 50;
+    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  .streak-pop.fire{ opacity:1; transform: translateX(-50%) scale(1) translateY(0); top:70px; }
+
+  /* CONFETTI */
+  .confetti-piece{
+    position: fixed; top:-10px; pointer-events:none; z-index:60;
+    width:8px; height:8px; border-radius:2px;
+  }
+
+  /* RESULTS / LEADERBOARD SCREENS */
+  .results-icon{ font-size: 60px; text-align:center; margin-bottom: 8px;}
+  .results-score{
+    text-align:center; font-size: 46px; font-weight: 900; color: var(--amber);
+    margin-bottom: 2px;
+  }
+  .results-label{ text-align:center; color: var(--cream-dim); font-size: 14px; margin-bottom: 22px;}
+  .results-breakdown{
+    background: var(--navy-2); border-radius: 16px; padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+  .bd-row{ display:flex; justify-content: space-between; padding: 8px 0; font-size: 14.5px; border-bottom: 1px solid #25395750; }
+  .bd-row:last-child{ border-bottom:none; }
+  .bd-row b{ color: var(--amber); }
+
+  .lb-list{ display:flex; flex-direction:column; gap:8px; margin-bottom: 18px; }
+  .lb-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--navy-2); border-radius: 12px; padding: 10px 14px;
+  }
+  .lb-row.me{ border: 2px solid var(--amber); }
+  .lb-rank{ font-weight: 900; color: var(--cream-dim); width: 22px; }
+  .lb-rank.gold{ color: #FFD700; }
+  .lb-rank.silver{ color: #C0C0C0; }
+  .lb-rank.bronze{ color: #CD7F32; }
+  .lb-name{ flex:1; font-weight: 700; font-size: 14.5px; }
+  .lb-score{ font-weight: 800; color: var(--amber); }
+
+  .primary-btn{
+    width:100%; background: var(--amber); color: var(--navy);
+    border:none; border-radius: 14px; padding: 16px;
+    font-weight: 800; font-size: 15.5px; cursor:pointer; margin-bottom: 10px;
+  }
+  .ghost-btn{
+    width:100%; background: transparent; color: var(--cream-dim);
+    border: 2px solid var(--navy-3); border-radius: 14px; padding: 14px;
+    font-weight: 700; font-size: 14.5px; cursor:pointer;
+  }
+  .primary-btn:active, .ghost-btn:active{ transform: scale(0.97); }
+
+  .empty-lb{ text-align:center; color: var(--cream-dim); font-size: 14px; padding: 20px 0; }
+
+  /* small footer link */
+  .small-link{
+    text-align:center; color: var(--cream-dim); font-size: 13px;
+    margin-top: 6px; text-decoration: underline; cursor:pointer;
+  }
+
+  @media (max-width: 380px){
+    .symbol-big{ font-size: 54px; }
+    .formula-big{ font-size: 32px; }
+    .mc-btn{ font-size: 13px; padding: 12px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== TOP BAR (hidden on intro) ===== -->
+  <div class="topbar" id="topbar" style="display:none;">
+    <div class="topbar-row">
+      <div class="lab-title">⚗ Compound Naming Lab</div>
+      <div class="stat-row">
+        <div class="stat-pill">⏱ <span id="timerDisplay">0:00</span></div>
+        <div class="stat-pill"><span class="streak-flame">🔥</span><span id="streakDisplay">0</span></div>
+        <div class="stat-pill">⭐ <span id="scoreDisplay">0</span></div>
+      </div>
+    </div>
+    <div class="tile-strip" id="tileStrip"></div>
+  </div>
+
+  <div class="stage">
+
+    <!-- ===== INTRO SCREEN ===== -->
+    <div class="screen active" id="screen-intro">
+      <div class="beaker-emoji">🧪</div>
+      <div class="intro-h1 display">Compound<br><span>Naming Lab</span></div>
+      <div class="intro-sub">Foundations edition. Multiple choice all the way through — build your confidence one tile at a time.</div>
+      <div class="name-input-wrap">
+        <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="18" autocomplete="off">
+      </div>
+      <div class="name-input-wrap" style="display:flex; gap:10px; margin-bottom:0;">
+        <input type="text" id="gradeInput" placeholder="Grade" maxlength="12" autocomplete="off" style="flex:1;">
+        <input type="text" id="sectionInput" placeholder="Section" maxlength="18" autocomplete="off" style="flex:1;">
+      </div>
+      <div class="name-input-wrap">
+        <select id="teacherSelect" required>
+          <option value="" disabled selected>Select Your Teacher</option>
+          <option value="Mark John R. Battad">Mark John R. Battad</option>
+          <option value="Shela May O. Barra">Shela May O. Barra</option>
+          <option value="Michelle E. Claveria">Michelle E. Claveria</option>
+          <option value="Renante C. Claveria">Renante C. Claveria</option>
+          <option value="Mylene P. Cojuangco">Mylene P. Cojuangco</option>
+          <option value="Rowena C. Cumal">Rowena C. Cumal</option>
+          <option value="Lovelyann B. Daniel">Lovelyann B. Daniel</option>
+          <option value="Sri Laine C. Parungao">Sri Laine C. Parungao</option>
+        </select>
+      </div>
+      <div class="feedback wrong" id="introError" style="display:none; max-width:320px; width:100%; text-align:center;"></div>
+      <div style="max-width:320px; width:100%; text-align:center; font-size:13px; color:var(--cream-dim); margin:2px 0 10px;">⏱ Heads up: the timer starts the moment you press Start.</div>
+      <button class="primary-btn" style="max-width:320px;" onclick="startGame()">Start Round 1 →</button>
+      <div class="small-link" onclick="showLeaderboard('overall', true)">View Leaderboard</div>
+    </div>
+
+    <!-- ===== ROUND INTRO SCREEN ===== -->
+    <div class="screen" id="screen-roundintro">
+      <div class="round-intro-card">
+        <div class="round-intro-icon" id="riIcon">🔬</div>
+        <h2 id="riTitle">Round Title</h2>
+        <p id="riDesc">Round description</p>
+        <button class="primary-btn" style="max-width:300px;" onclick="beginRound()">Begin Round →</button>
+      </div>
+    </div>
+
+    <!-- ===== QUESTION SCREEN ===== -->
+    <div class="screen" id="screen-question">
+      <div class="round-banner">
+        <div class="round-eyebrow" id="qEyebrow">ROUND 1 · ELEMENT ID</div>
+        <div class="round-name" id="qProgress">Item 1 of 5</div>
+      </div>
+
+      <div class="qcard" id="qcard">
+        <div class="item-num" id="itemNum">1/5</div>
+        <div id="questionContent"></div>
+      </div>
+
+      <div class="answer-area" id="answerArea"></div>
+
+      <div class="feedback" id="feedback"></div>
+      <button class="continue-btn" id="continueBtn" onclick="nextQuestion()">Continue →</button>
+    </div>
+
+    <!-- ===== ROUND RESULT SCREEN ===== -->
+    <div class="screen" id="screen-roundresult">
+      <div class="results-icon" id="rrIcon">🏅</div>
+      <div class="results-score" id="rrScore">0</div>
+      <div class="results-label">points earned this round</div>
+      <div class="results-breakdown" id="rrBreakdown"></div>
+      <button class="primary-btn" id="rrNextBtn" onclick="advanceFromRoundResult()">Continue →</button>
+    </div>
+
+    <!-- ===== FINAL RESULT / LEADERBOARD SCREEN ===== -->
+    <div class="screen" id="screen-final">
+      <div class="results-icon">🏆</div>
+      <div class="results-score" id="finalScore">0</div>
+      <div class="results-label">final score · all 3 rounds complete</div>
+      <div class="results-breakdown" id="finalBreakdown"></div>
+      <div class="round-eyebrow" style="margin-bottom:10px;">LEADERBOARD — TOP SCORES</div>
+      <div class="lb-list" id="finalLbList"></div>
+      <button class="primary-btn" onclick="resetGame()">Play Again</button>
+      <button class="ghost-btn" onclick="clearLeaderboardConfirm()">Clear Leaderboard</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+========================================================= */
+
+// ----- ROUND 1: Element symbol -> name -----
+const ELEMENTS_POOL = [
+  {sym:"H", name:"Hydrogen"}, {sym:"O", name:"Oxygen"}, {sym:"N", name:"Nitrogen"},
+  {sym:"C", name:"Carbon"}, {sym:"Na", name:"Sodium"}, {sym:"Cl", name:"Chlorine"},
+  {sym:"Ca", name:"Calcium"}, {sym:"Fe", name:"Iron"}, {sym:"K", name:"Potassium"},
+  {sym:"Mg", name:"Magnesium"}, {sym:"Al", name:"Aluminum"}, {sym:"S", name:"Sulfur"},
+  {sym:"Cu", name:"Copper"}, {sym:"Zn", name:"Zinc"}, {sym:"Au", name:"Gold"},
+  {sym:"Ag", name:"Silver"}, {sym:"He", name:"Helium"}, {sym:"I", name:"Iodine"}
+];
+
+// ----- ROUND 2 — IONIC HALF: Binary ionic compounds (fixed-charge, all multiple choice) -----
+const ROUND2_IONIC_POOL = [
+  { formula:"NaCl", answer:"Sodium chloride", type:"ionic", mode:"mc",
+    distract:["Sodium sulfide","Sodium oxide","Sodium fluoride"] },
+  { formula:"MgO", answer:"Magnesium oxide", type:"ionic", mode:"mc",
+    distract:["Magnesium chloride","Magnesium sulfide","Magnesium nitride"] },
+  { formula:"CaCl2", answer:"Calcium chloride", type:"ionic", mode:"mc",
+    distract:["Calcium oxide","Calcium sulfide","Calcium bromide"] },
+  { formula:"KCl", answer:"Potassium chloride", type:"ionic", mode:"mc",
+    distract:["Potassium oxide","Potassium sulfide","Potassium fluoride"] },
+  { formula:"ZnO", answer:"Zinc oxide", type:"ionic", mode:"mc",
+    distract:["Zinc chloride","Zinc sulfide","Zinc nitride"] },
+  { formula:"NaF", answer:"Sodium fluoride", type:"ionic", mode:"mc",
+    distract:["Sodium chloride","Sodium oxide","Sodium iodide"] },
+  { formula:"MgCl2", answer:"Magnesium chloride", type:"ionic", mode:"mc",
+    distract:["Magnesium oxide","Magnesium sulfide","Magnesium fluoride"] },
+  { formula:"K2O", answer:"Potassium oxide", type:"ionic", mode:"mc",
+    distract:["Potassium chloride","Potassium sulfide","Potassium nitride"] },
+  { formula:"CaO", answer:"Calcium oxide", type:"ionic", mode:"mc",
+    distract:["Calcium chloride","Calcium sulfide","Calcium fluoride"] },
+  { formula:"AlCl3", answer:"Aluminum chloride", type:"ionic", mode:"mc",
+    distract:["Aluminum oxide","Aluminum sulfide","Aluminum fluoride"] }
+];
+
+// ----- ROUND 2 — COVALENT HALF: Binary covalent compounds (prefix naming, all multiple choice) -----
+const ROUND2_COVALENT_POOL = [
+  { formula:"CO", answer:"Carbon monoxide", type:"covalent", mode:"mc",
+    distract:["Carbon dioxide","Dicarbon monoxide","Carbon trioxide"] },
+  { formula:"CO2", answer:"Carbon dioxide", type:"covalent", mode:"mc",
+    distract:["Carbon monoxide","Dicarbon trioxide","Carbon trioxide"] },
+  { formula:"N2O", answer:"Dinitrogen monoxide", type:"covalent", mode:"mc",
+    distract:["Nitrogen monoxide","Dinitrogen dioxide","Trinitrogen monoxide"] },
+  { formula:"NO2", answer:"Nitrogen dioxide", type:"covalent", mode:"mc",
+    distract:["Dinitrogen oxide","Nitrogen trioxide","Nitrogen monoxide"] },
+  { formula:"SO2", answer:"Sulfur dioxide", type:"covalent", mode:"mc",
+    distract:["Sulfur trioxide","Disulfur dioxide","Sulfur monoxide"] },
+  { formula:"SO3", answer:"Sulfur trioxide", type:"covalent", mode:"mc",
+    distract:["Sulfur dioxide","Disulfur trioxide","Sulfur tetroxide"] },
+  { formula:"CCl4", answer:"Carbon tetrachloride", type:"covalent", mode:"mc",
+    distract:["Carbon trichloride","Dicarbon tetrachloride","Carbon dichloride"] },
+  { formula:"PCl3", answer:"Phosphorus trichloride", type:"covalent", mode:"mc",
+    distract:["Phosphorus pentachloride","Diphosphorus trichloride","Phosphorus trioxide"] },
+  { formula:"PCl5", answer:"Phosphorus pentachloride", type:"covalent", mode:"mc",
+    distract:["Phosphorus trichloride","Diphosphorus pentachloride","Phosphorus pentoxide"] },
+  { formula:"N2O5", answer:"Dinitrogen pentoxide", type:"covalent", mode:"mc",
+    distract:["Nitrogen pentoxide","Dinitrogen tetroxide","Dinitrogen trioxide"] },
+  { formula:"SiO2", answer:"Silicon dioxide", type:"covalent", mode:"mc",
+    distract:["Silicon monoxide","Disilicon dioxide","Silicon trioxide"] },
+  { formula:"SF6", answer:"Sulfur hexafluoride", type:"covalent", mode:"mc",
+    distract:["Sulfur tetrafluoride","Disulfur hexafluoride","Sulfur pentafluoride"] }
+];
+
+// ----- ROUND 3: Binary ionic compounds with variable oxidation states (Stock system) -----
+const ROUND3_POOL = [
+  { formula:"FeCl2", answer:"Iron(II) chloride", mode:"mc",
+    distract:["Iron(III) chloride","Iron(II) oxide","Iron chloride"] },
+  { formula:"FeCl3", answer:"Iron(III) chloride", mode:"mc",
+    distract:["Iron(II) chloride","Iron(III) oxide","Iron trichloride"] },
+  { formula:"FeO", answer:"Iron(II) oxide", mode:"mc",
+    distract:["Iron(III) oxide","Iron(II) chloride","Diiron oxide"] },
+  { formula:"Fe2O3", answer:"Iron(III) oxide", mode:"mc",
+    distract:["Iron(II) oxide","Iron(III) chloride","Triiron oxide"] },
+  { formula:"CuO", answer:"Copper(II) oxide", mode:"mc",
+    distract:["Copper(I) oxide","Copper(II) chloride","Dicopper oxide"] },
+  { formula:"Cu2O", answer:"Copper(I) oxide", mode:"mc",
+    distract:["Copper(II) oxide","Copper(I) chloride","Copper oxide"] },
+  { formula:"CuCl", answer:"Copper(I) chloride", mode:"mc",
+    distract:["Copper(II) chloride","Copper(I) oxide","Dicopper chloride"] },
+  { formula:"CuCl2", answer:"Copper(II) chloride", mode:"mc",
+    distract:["Copper(I) chloride","Copper(II) oxide","Copper dichloride"] },
+  { formula:"SnCl2", answer:"Tin(II) chloride", mode:"mc",
+    distract:["Tin(IV) chloride","Tin(II) oxide","Ditin chloride"] },
+  { formula:"SnCl4", answer:"Tin(IV) chloride", mode:"mc",
+    distract:["Tin(II) chloride","Tin(IV) oxide","Tin tetrachloride"] },
+  { formula:"PbO", answer:"Lead(II) oxide", mode:"mc",
+    distract:["Lead(IV) oxide","Lead(II) chloride","Dilead oxide"] },
+  { formula:"PbO2", answer:"Lead(IV) oxide", mode:"mc",
+    distract:["Lead(II) oxide","Lead(IV) chloride","Lead dioxide"] },
+  { formula:"HgCl2", answer:"Mercury(II) chloride", mode:"mc",
+    distract:["Mercury(I) chloride","Mercury(II) oxide","Dimercury chloride"] },
+  { formula:"CoCl2", answer:"Cobalt(II) chloride", mode:"mc",
+    distract:["Cobalt(III) chloride","Cobalt(II) oxide","Dicobalt chloride"] },
+  { formula:"CoCl3", answer:"Cobalt(III) chloride", mode:"mc",
+    distract:["Cobalt(II) chloride","Cobalt(III) oxide","Tricobalt chloride"] },
+  { formula:"MnO", answer:"Manganese(II) oxide", mode:"mc",
+    distract:["Manganese(IV) oxide","Manganese(II) chloride","Dimanganese oxide"] },
+  { formula:"MnO2", answer:"Manganese(IV) oxide", mode:"mc",
+    distract:["Manganese(II) oxide","Manganese(IV) chloride","Manganese dioxide"] }
+];
+
+const ROUND_SIZES = [10, 10, 5]; // items per round: [Round1, Round2, Round3]
+const TOTAL_QUESTIONS = ROUND_SIZES.reduce((a,b)=>a+b, 0);
+function roundOffset(roundNum){
+  let off = 0;
+  for(let i=0;i<roundNum-1;i++) off += ROUND_SIZES[i];
+  return off;
+}
+function firstActiveRound(){
+  for(let i=0;i<ROUND_SIZES.length;i++){ if(ROUND_SIZES[i] > 0) return i+1; }
+  return 1;
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+let state = {
+  playerName: "",
+  grade: "",
+  section: "",
+  teacher: "",
+  round: 1,            // 1,2,3
+  questions: [],        // current round's question set
+  qIndex: 0,
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  roundScores: [0,0,0],
+  roundCorrect: [0,0,0],
+  filledTiles: 0,
+  answered: false,
+  startTime: null,
+  elapsedSeconds: 0,
+  speedBonus: 0
+};
+
+const LB_KEY = "compoundLab_leaderboard_easy_v1";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw7aB5zs9Q3OOtIT9vA7dHNplBXBTbeBSoLdYG9pLOWE4ftEmmYOO3Xh4CkMxJkYE4dYg/exec";
+const QUIZ_TITLE = "Compound Naming Lab - Foundations";
+let timerInterval = null;
+
+/* =========================================================
+   UTIL
+========================================================= */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function pick(arr, n){ return shuffle(arr).slice(0,n); }
+
+function normalize(str){
+  return str.toLowerCase()
+    .trim()
+    .replace(/\s+/g,' ')
+    .replace(/[()]/g,'')
+    .replace(/aluminium/g,'aluminum') // accept British spelling
+    .replace(/sulphate/g,'sulfate')
+    .replace(/sulphide/g,'sulfide')
+    .replace(/sulphite/g,'sulfite')
+    .replace(/sulphur/g,'sulfur');
+}
+
+function fuzzyMatch(input, target){
+  const a = normalize(input);
+  const b = normalize(target);
+  if(a === b) return true;
+  // allow minor typo tolerance via levenshtein distance <=1 for short words, <=2 for longer
+  const dist = levenshtein(a,b);
+  const tolerance = b.length > 7 ? 2 : 1;
+  return dist <= tolerance;
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp = Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i;
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      if(a[i-1]===b[j-1]) dp[i][j]=dp[i-1][j-1];
+      else dp[i][j]=1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function vibrate(ms){
+  if(navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+}
+
+/* =========================================================
+   TILE STRIP (signature progress element)
+========================================================= */
+function buildTileStrip(){
+  const strip = document.getElementById('tileStrip');
+  strip.innerHTML = "";
+  const total = TOTAL_QUESTIONS;
+  for(let i=0;i<total;i++){
+    const t = document.createElement('div');
+    t.className = 'ptile';
+    t.id = 'tile-'+i;
+    t.textContent = '·';
+    strip.appendChild(t);
+  }
+}
+function fillTile(globalIndex, roundNum){
+  const t = document.getElementById('tile-'+globalIndex);
+  if(!t) return;
+  t.classList.add('filled');
+  if(roundNum===2) t.classList.add('r2');
+  if(roundNum===3) t.classList.add('r3');
+  const symbols = ["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca",
+                    "Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn"];
+  t.textContent = symbols[globalIndex % symbols.length];
+}
+
+/* =========================================================
+   SCREEN NAV
+========================================================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* =========================================================
+   GAME FLOW
+========================================================= */
+function startGame(){
+  const nameInput = document.getElementById('playerNameInput');
+  const gradeInput = document.getElementById('gradeInput');
+  const sectionInput = document.getElementById('sectionInput');
+  const teacherSelect = document.getElementById('teacherSelect');
+  const errBox = document.getElementById('introError');
+
+  let nm = nameInput.value.trim();
+  const grade = gradeInput.value.trim();
+  const section = sectionInput.value.trim();
+  const teacher = teacherSelect.value;
+
+  if(!nm || !grade || !section || !teacher){
+    errBox.textContent = "⚠️ Please fill in your name, grade, section, and select your teacher before starting.";
+    errBox.style.display = 'block';
+    return;
+  }
+  errBox.style.display = 'none';
+
+  state.playerName = nm.slice(0,18);
+  state.grade = grade;
+  state.section = section;
+  state.teacher = teacher;
+
+  document.getElementById('topbar').style.display = 'block';
+  buildTileStrip();
+  state.round = 1;
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.roundScores = [0,0,0];
+  state.roundCorrect = [0,0,0];
+  updateHeaderStats();
+  startTimer();
+  showRoundIntro(firstActiveRound());
+}
+
+/* ---------- TIMER ---------- */
+function startTimer(){
+  state.startTime = Date.now();
+  state.elapsedSeconds = 0;
+  if(timerInterval) clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(()=>{
+    state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+    updateTimerDisplay();
+  }, 1000);
+}
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+  updateTimerDisplay();
+}
+function updateTimerDisplay(){
+  const m = Math.floor(state.elapsedSeconds / 60);
+  const s = state.elapsedSeconds % 60;
+  const el = document.getElementById('timerDisplay');
+  if(el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+function formatTime(totalSeconds){
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function showRoundIntro(roundNum){
+  state.round = roundNum;
+  const cfg = {
+    1: { icon:"🧬", title:"Round 1 · Element ID", desc:"You'll see an element's symbol. Pick its name from the choices. Take your time — this is all about getting comfortable with the periodic table." },
+    2: { icon:"⚛️", title:"Round 2 · Binary Compounds", desc:"Some of these are metal + nonmetal (ionic). Others are two nonmetals using prefixes like di-, tri-, tetra- (covalent). Read carefully before choosing." },
+    3: { icon:"🔬", title:"Round 3 · Multiple Oxidation States", desc:"These metals can form more than one charge. Watch for the Roman numeral (Stock system) — it tells you which charge is being used." }
+  }[roundNum];
+  document.getElementById('riIcon').textContent = cfg.icon;
+  document.getElementById('riTitle').textContent = cfg.title;
+  document.getElementById('riDesc').textContent = cfg.desc;
+  showScreen('screen-roundintro');
+}
+
+function beginRound(){
+  // build question set for current round
+  if(state.round === 1){
+    const chosen = pick(ELEMENTS_POOL, 10);
+    state.questions = chosen.map(e=>{
+      const otherNames = ELEMENTS_POOL.filter(x=>x.sym!==e.sym).map(x=>x.name);
+      const distract = pick(otherNames, 3);
+      return { mode:"mc", prompt:e.sym, answer:e.name, sub:"Element symbol", distract, isElement:true };
+    });
+  } else if(state.round === 2){
+    const ionicHalf = pick(ROUND2_IONIC_POOL, 5).map(q=>({
+      mode:q.mode, prompt:q.formula, answer:q.answer, sub:"Metal + nonmetal", distract:q.distract
+    }));
+    const covalentHalf = pick(ROUND2_COVALENT_POOL, 5).map(q=>({
+      mode:q.mode, prompt:q.formula, answer:q.answer, sub:"Two nonmetals — use prefixes", distract:q.distract
+    }));
+    state.questions = shuffle([...ionicHalf, ...covalentHalf]);
+  } else {
+    state.questions = pick(ROUND3_POOL, 5).map(q=>({
+      mode:q.mode, prompt:q.formula, answer:q.answer, sub:"Variable-charge metal — check the Roman numeral", distract:q.distract, altAnswers:q.altAnswers||[]
+    }));
+  }
+  state.qIndex = 0;
+  state.answered = false;
+  showScreen('screen-question');
+  renderQuestion();
+}
+
+function updateHeaderStats(){
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('streakDisplay').textContent = state.streak;
+}
+
+/* ---------- RENDER QUESTION ---------- */
+function renderQuestion(){
+  state.answered = false;
+  const q = state.questions[state.qIndex];
+  const roundSize = ROUND_SIZES[state.round-1];
+  document.getElementById('qEyebrow').textContent =
+    state.round===1 ? "ROUND 1 · ELEMENT ID" :
+    state.round===2 ? "ROUND 2 · BINARY COMPOUNDS" : "ROUND 3 · MULTIPLE OXIDATION STATES";
+  document.getElementById('qProgress').textContent = `Item ${state.qIndex+1} of ${roundSize}`;
+  document.getElementById('itemNum').textContent = `${state.qIndex+1}/${roundSize}`;
+
+  const content = document.getElementById('questionContent');
+  const answerArea = document.getElementById('answerArea');
+  const feedback = document.getElementById('feedback');
+  feedback.className = 'feedback';
+  feedback.innerHTML = '';
+  document.getElementById('continueBtn').classList.remove('show');
+
+  if(q.isElement){
+    content.innerHTML = `
+      <div class="symbol-sub">What element has this symbol?</div>
+      <div class="symbol-big">${q.prompt}</div>
+    `;
+  } else {
+    content.innerHTML = `
+      <div class="symbol-sub">Name this compound</div>
+      <div class="formula-big">${formatFormula(q.prompt)}</div>
+      <div class="formula-hint">${q.sub}</div>
+    `;
+  }
+
+  if(q.mode === 'type'){
+    answerArea.innerHTML = `
+      <div class="text-answer">
+        <input type="text" id="answerInput" placeholder="Type your answer" autocomplete="off" autocapitalize="off" autocorrect="off">
+        <button class="submit-btn" onclick="submitTypedAnswer()">Check</button>
+      </div>
+    `;
+    const inp = document.getElementById('answerInput');
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') submitTypedAnswer(); });
+    setTimeout(()=>inp.focus(), 50);
+  } else {
+    const options = shuffle([q.answer, ...q.distract]);
+    answerArea.innerHTML = `<div class="mc-grid">${
+      options.map(opt => `<div class="mc-btn" data-answer="${escapeHtml(opt)}" onclick="submitMCAnswer(this)">${opt}</div>`).join('')
+    }</div>`;
+  }
+}
+
+function formatFormula(f){
+  // convert numbers to subscripts for display
+  return f.replace(/(\d+)/g, '<sub>$1</sub>');
+}
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+}
+
+/* ---------- ANSWER HANDLING ---------- */
+function submitTypedAnswer(){
+  if(state.answered) return;
+  const inp = document.getElementById('answerInput');
+  const val = inp.value.trim();
+  if(!val) { inp.focus(); return; }
+  const q = state.questions[state.qIndex];
+  const candidates = [q.answer, ...(q.altAnswers||[])];
+  const isCorrect = candidates.some(c => fuzzyMatch(val, c));
+  lockAnswer(isCorrect, q.answer);
+}
+
+function submitMCAnswer(el){
+  if(state.answered) return;
+  const q = state.questions[state.qIndex];
+  const chosen = el.getAttribute('data-answer');
+  const isCorrect = normalize(chosen) === normalize(q.answer);
+  // visually flash all buttons
+  document.querySelectorAll('.mc-btn').forEach(btn=>{
+    btn.onclick = null;
+    if(btn === el){
+      btn.classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+    } else if(normalize(btn.getAttribute('data-answer')) === normalize(q.answer)){
+      btn.classList.add('correct-flash');
+    } else {
+      btn.classList.add('disabled-flash');
+    }
+  });
+  lockAnswer(isCorrect, q.answer);
+}
+
+function lockAnswer(isCorrect, correctAnswer){
+  state.answered = true;
+  const feedback = document.getElementById('feedback');
+  const globalIdx = roundOffset(state.round) + state.qIndex;
+  const roundSize = ROUND_SIZES[state.round-1];
+
+  if(isCorrect){
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    const earned = state.round; // Round 1 = 1pt, Round 2 = 2pts, Round 3 = 3pts
+    state.score += earned;
+    state.roundScores[state.round-1] += earned;
+    state.roundCorrect[state.round-1]++;
+    fillTile(globalIdx, state.round);
+
+    feedback.className = 'feedback correct show';
+    feedback.innerHTML = `✅ Correct! <b>+${earned} pt${earned>1?'s':''}</b>`;
+
+    vibrate(40);
+    if(state.streak >= 3) showStreakPopup(state.streak);
+    if(state.streak > 0 && state.streak % 5 === 0) launchConfetti();
+  } else {
+    state.streak = 0;
+    feedback.className = 'feedback wrong show';
+    feedback.innerHTML = `💡 Close! The correct answer is: <span class="fb-answer">${correctAnswer}</span>`;
+    vibrate([30,40,30]);
+  }
+
+  updateHeaderStats();
+  document.getElementById('continueBtn').classList.add('show');
+  document.getElementById('continueBtn').textContent =
+    (state.qIndex === roundSize-1) ? "See Round Results →" : "Continue →";
+}
+
+function nextQuestion(){
+  const roundSize = ROUND_SIZES[state.round-1];
+  if(state.qIndex < roundSize-1){
+    state.qIndex++;
+    renderQuestion();
+  } else {
+    showRoundResult();
+  }
+}
+
+/* ---------- ROUND RESULT ---------- */
+function showRoundResult(){
+  const r = state.round - 1;
+  const roundLabel = ["Element ID", "Binary Compounds (Ionic + Covalent)", "Multiple Oxidation States"][r];
+  document.getElementById('rrIcon').textContent = state.round < 3 ? "🏅" : "🎓";
+  document.getElementById('rrScore').textContent = "+" + state.roundScores[r];
+  document.getElementById('rrBreakdown').innerHTML = `
+    <div class="bd-row"><span>Round</span><b>${roundLabel}</b></div>
+    <div class="bd-row"><span>Correct</span><b>${state.roundCorrect[r]} / ${ROUND_SIZES[r]}</b></div>
+    <div class="bd-row"><span>Best streak so far</span><b>${state.bestStreak} 🔥</b></div>
+    <div class="bd-row"><span>Total score</span><b>${state.score}</b></div>
+  `;
+  document.getElementById('rrNextBtn').textContent = state.round < 3 ? `Start Round ${state.round+1} →` : "See Final Results →";
+  showScreen('screen-roundresult');
+}
+
+function advanceFromRoundResult(){
+  if(state.round < 3){
+    showRoundIntro(state.round+1);
+  } else {
+    finishGame();
+  }
+}
+
+/* ---------- FINAL RESULTS + LEADERBOARD ---------- */
+function finishGame(){
+  stopTimer();
+
+  // Speed bonus: rewards finishing all 15 items quickly
+  const t = state.elapsedSeconds;
+  if(t <= 180) state.speedBonus = 3;        // under 3:00
+  else if(t <= 300) state.speedBonus = 2;   // under 5:00
+  else if(t <= 600) state.speedBonus = 1;   // under 10:00
+  else state.speedBonus = 0;
+  const totalScore = state.score + state.speedBonus;
+
+  saveScore(state.playerName, totalScore, state.bestStreak);
+  document.getElementById('finalScore').textContent = totalScore;
+  document.getElementById('finalBreakdown').innerHTML = `
+    <div class="bd-row"><span>Round 1 · Element ID</span><b>${state.roundCorrect[0]}/${ROUND_SIZES[0]} correct</b></div>
+    <div class="bd-row"><span>Round 2 · Binary Compounds</span><b>${state.roundCorrect[1]}/${ROUND_SIZES[1]} correct</b></div>
+    <div class="bd-row"><span>Round 3 · Multiple Oxidation States</span><b>${state.roundCorrect[2]}/${ROUND_SIZES[2]} correct</b></div>
+    <div class="bd-row"><span>Time</span><b>${formatTime(t)}</b></div>
+    <div class="bd-row"><span>Speed bonus</span><b>+${state.speedBonus} pts</b></div>
+    <div class="bd-row"><span>Best streak</span><b>${state.bestStreak} 🔥</b></div>
+  `;
+  renderLeaderboard('finalLbList', true);
+  showScreen('screen-final');
+  launchConfetti(40);
+  submitToMasterRecord(totalScore);
+}
+
+/* ---------- MASTER RECORD SUBMISSION ---------- */
+function submitToMasterRecord(totalScore){
+  if(!WEB_APP_URL || WEB_APP_URL.indexOf('PASTE_YOUR') === 0){
+    console.log('Master Record URL not set — skipping submission.');
+    return;
+  }
+  const formData = new URLSearchParams();
+  formData.append('teacher', state.teacher);
+  formData.append('quizTitle', QUIZ_TITLE);
+  formData.append('studentName', state.playerName);
+  formData.append('grade', state.grade);
+  formData.append('section', state.section);
+  formData.append('score', state.score);
+  formData.append('time', formatTime(state.elapsedSeconds));
+  formData.append('speedBonus', state.speedBonus);
+  formData.append('totalScore', totalScore);
+
+  fetch(WEB_APP_URL, { method: 'POST', body: formData })
+    .catch(err => console.log('Master Record submission error:', err));
+}
+
+function getLeaderboard(){
+  try{
+    const raw = localStorage.getItem(LB_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveScore(name, score, bestStreak){
+  let lb = getLeaderboard();
+  lb.push({ name, score, bestStreak, date: new Date().toISOString() });
+  lb.sort((a,b)=>b.score-a.score);
+  lb = lb.slice(0,20);
+  try{ localStorage.setItem(LB_KEY, JSON.stringify(lb)); }catch(e){}
+}
+
+function renderLeaderboard(containerId, highlightLatest){
+  const lb = getLeaderboard();
+  const container = document.getElementById(containerId);
+  if(lb.length === 0){
+    container.innerHTML = `<div class="empty-lb">No scores yet. Be the first!</div>`;
+    return;
+  }
+  const top = lb.slice(0,8);
+  container.innerHTML = top.map((entry, i)=>{
+    const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const isMe = highlightLatest && entry.name===state.playerName && entry.score===state.score;
+    return `
+      <div class="lb-row ${isMe?'me':''}">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-name">${escapeHtml(entry.name)}</div>
+        <div class="lb-score">${entry.score}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showLeaderboard(){
+  renderLeaderboard('finalLbList', false);
+  document.getElementById('finalScore').textContent = "—";
+  document.getElementById('finalBreakdown').innerHTML = `<div class="bd-row"><span>Viewing saved scores</span><b>All players</b></div>`;
+  showScreen('screen-final');
+}
+
+function clearLeaderboardConfirm(){
+  if(confirm("Clear all saved leaderboard scores? This can't be undone.")){
+    localStorage.removeItem(LB_KEY);
+    renderLeaderboard('finalLbList', false);
+  }
+}
+
+function resetGame(){
+  stopTimer();
+  document.getElementById('playerNameInput').value = state.playerName;
+  document.getElementById('gradeInput').value = state.grade;
+  document.getElementById('sectionInput').value = state.section;
+  document.getElementById('teacherSelect').value = state.teacher;
+  document.getElementById('topbar').style.display = 'none';
+  document.getElementById('timerDisplay').textContent = '0:00';
+  showScreen('screen-intro');
+}
+
+/* =========================================================
+   STREAK POPUP + CONFETTI (lightweight, no deps)
+========================================================= */
+let streakPopupEl = null;
+function showStreakPopup(streak){
+  if(!streakPopupEl){
+    streakPopupEl = document.createElement('div');
+    streakPopupEl.className = 'streak-pop';
+    document.body.appendChild(streakPopupEl);
+  }
+  streakPopupEl.textContent = `🔥 ${streak} STREAK!`;
+  streakPopupEl.classList.remove('fire');
+  void streakPopupEl.offsetWidth; // reflow to restart animation
+  streakPopupEl.classList.add('fire');
+  setTimeout(()=>{ streakPopupEl.classList.remove('fire'); }, 1100);
+}
+
+function launchConfetti(count){
+  count = count || 24;
+  const colors = ['#FFA94D','#5FD068','#7FD8E8','#C792EA','#F2EDE4'];
+  for(let i=0;i<count;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random()*6;
+    piece.style.width = size+'px';
+    piece.style.height = size+'px';
+    piece.style.left = (Math.random()*100)+'vw';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+    document.body.appendChild(piece);
+    const duration = 1400 + Math.random()*1000;
+    const rotate = (Math.random()*720-360);
+    const drift = (Math.random()*120-60);
+    piece.animate([
+      { transform:'translate(0,0) rotate(0deg)', opacity:1 },
+      { transform:`translate(${drift}px, 100vh) rotate(${rotate}deg)`, opacity:0.9 }
+    ], { duration, easing:'cubic-bezier(.25,.46,.45,.94)' });
+    setTimeout(()=>piece.remove(), duration+50);
+  }
+}
+
+/* init */
+document.getElementById('playerNameInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') startGame();
+});
+</script>
+</body>
+</html>
